@@ -1,3 +1,5 @@
+const assert = require('assert');
+
 /**
  * @callback MessageCallback
  * @param {String} event
@@ -31,15 +33,11 @@ class NotificationClientBackend {
    * @param {RedisClient} redisClients.sub
    */
   constructor(namespace, prefix, handlers, redisClients) {
-    if (!namespace) {
-      throw new Error('The NotificationClient cannot be initialized with an empty namespace');
-    }
-    if (!prefix) {
-      throw new Error('The NotificationClient cannot be initialized with an empty prefix');
-    }
-    if (!redisClients || (typeof redisClients !== 'object') || !redisClients.pub || !redisClients.sub) {
-      throw new Error('The NotificationClient cannot be initialized pub and sub Redis clients');
-    }
+    assert(namespace, 'The NotificationClient cannot be initialized with an empty namespace');
+    assert(prefix, 'The NotificationClient cannot be initialized with an empty prefix');
+    assert(redisClients, 'The NotificationClient cannot be initialized without Redis clients');
+    assert(typeof redisClients === 'object', 'The "redisClients" argument must be an object');
+    assert(redisClients.pub && redisClients.sub, 'Both "pub" and "sub" properties must be present on "redisClients"');
 
     this.config = { namespace, prefix };
     this.redisClients = redisClients;
@@ -119,9 +117,8 @@ class NotificationClientBackend {
    * @param {String} user
    */
   send(event, message, rooms = null, user = null) {
-    if (event === 'subscribe' || event === 'unsubscribe') {
-      throw new Error(`The "${event}" event cannot be sent manually`);
-    }
+    assert(event !== 'subscribe' && event !== 'unsubscribe', `The "${event}" event cannot be sent manually`);
+
     const payload = {
       e: event,
       m: message
