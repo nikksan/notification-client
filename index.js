@@ -160,7 +160,7 @@ class NotificationClient {
    * @param {String} user
    */
   send(event, message, rooms = null, user = null) {
-    this._send(event, message, rooms = null, user = null);
+    this._send(event, message, rooms, user);
   }
 }
 
