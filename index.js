@@ -49,6 +49,8 @@ class NotificationClientBackend {
       unsubscribe: () => true
     }, handlers);
 
+    this.channels = {};
+
     this.channelTx = `${prefix}/${namespace}/tx`;
     this.channelRx = `${prefix}/${namespace}/rx`;
     this.initialize();
@@ -56,11 +58,18 @@ class NotificationClientBackend {
 
   initialize() {
     this.pub(this.config.prefix, this.config.namespace);
-    this.sub(this.channelRx, (channel, packet) => {
+
+    this.redisClients.sub.on('message', (channel, packet) => {
+      if (channel in this.channels) {
+        this.channels[channel](packet);
+      }
+    });
+
+    this.sub(this.channelRx, packet => {
       try {
         this.processIncomingPacket(packet);
       } catch (error) {
-        this.handlers.error(error, { channel, packet });
+        this.handlers.error(error, { packet });
       }
     });
   }
@@ -82,7 +91,7 @@ class NotificationClientBackend {
    * @private
    */
   sub(channel, callback) {
-    this.redisClients.sub.on('message', callback);
+    this.channels[channel] = callback;
     this.redisClients.sub.subscribe(channel);
   }
 
