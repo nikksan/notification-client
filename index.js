@@ -51,17 +51,24 @@ class NotificationClientBackend {
 
     this.channels = {};
 
+    this.serverTx = `${prefix}/tx`;
+    this.serverRx = `${prefix}/rx`;
     this.channelTx = `${prefix}/${namespace}/tx`;
     this.channelRx = `${prefix}/${namespace}/rx`;
     this.initialize();
   }
 
   initialize() {
-    this.pub(this.config.prefix, this.config.namespace);
-
     this.redisClients.sub.on('message', (channel, packet) => {
       if (channel in this.channels) {
         this.channels[channel](packet);
+      }
+    });
+
+    this.pub(this.serverTx, this.config.namespace);
+    this.sub(this.serverRx, packet => {
+      if (packet === 'SERVER_INIT') {
+        this.pub(this.serverTx, this.config.namespace);
       }
     });
 
