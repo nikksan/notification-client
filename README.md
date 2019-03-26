@@ -7,15 +7,14 @@ A two-way Redis-based notification client
 const client = require('@luckbox/notification-client');
 const redis = require('redis');
 
-const pub = redis.createClient();
-const sub = redis.createClient();
+const redisClient = redis.createClient();
 
 const handlers = {};
 handlers.message = (event, message, user) => {
   console.log(`[${event}] ${user} says "${message}"`);
 };
 
-const client = new NotificationClient('example', 'notifications', handlers, { pub, sub });
+const client = new NotificationClient('example', 'notifications', handlers, redisClient);
 
 client.send('new-announcenment', 'Hello everybody!');
 ```
@@ -24,14 +23,14 @@ client.send('new-announcenment', 'Hello everybody!');
 
 ### Methods
 
-#### `constructor(namespace, prefix, handlers, redisClients)`
+#### `constructor(namespace, prefix, handlers, redisClient)`
 
-Name         | Type   | Description
--------------|--------|------------
-namespace    | String | The namespace that identifies this client
-prefix       | String | The prefix the server is configured with
-handlers     | Object | An object with optional callbacks
-redisClients | Object | An object containing a `pub` and `sub` Redis clients
+Name         | Type        | Description
+-------------|-------------|------------
+namespace    | String      | The namespace that identifies this client
+prefix       | String      | The prefix the server is configured with
+handlers     | Object      | An object with optional callbacks
+redisClient  | RedisCleint | A RedisClient instance
 
 #### `send(event, message[, rooms, user])`
 

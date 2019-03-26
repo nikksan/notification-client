@@ -28,19 +28,20 @@ class NotificationClientBackend {
    * @param {MessageCallback} handlers.message
    * @param {SubscribeCallback} handlers.subscribe
    * @param {SubscribeCallback} handlers.unsubscribe
-   * @param {Object} redisClients
-   * @param {RedisClient} redisClients.pub
-   * @param {RedisClient} redisClients.sub
+   * @param {RedisClient} redisClient
    */
-  constructor(namespace, prefix, handlers, redisClients) {
+  constructor(namespace, prefix, handlers, redisClient) {
     assert(namespace, 'The NotificationClient cannot be initialized with an empty namespace');
     assert(prefix, 'The NotificationClient cannot be initialized with an empty prefix');
-    assert(redisClients, 'The NotificationClient cannot be initialized without Redis clients');
-    assert(typeof redisClients === 'object', 'The "redisClients" argument must be an object');
-    assert(redisClients.pub && redisClients.sub, 'Both "pub" and "sub" properties must be present on "redisClients"');
+    assert(redisClient, 'The NotificationClient cannot be initialized without a Redis client');
+    assert(typeof redisClient === 'object' && redisClient.constructor.name === 'RedisClient',
+      'The "redisClient" argument must be a RedisClient instance');
 
     this.config = { namespace, prefix };
-    this.redisClients = redisClients;
+    this.redisClients = {
+      pub: redisClient,
+      sub: redisClient.duplicate()
+    };
     this.handlers = Object.assign({
       error: () => { },
       message: () => { },
