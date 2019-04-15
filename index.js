@@ -160,12 +160,10 @@ class NotificationClient {
    * @param {MessageCallback} handlers.message
    * @param {SubscribeCallback} handlers.subscribe
    * @param {SubscribeCallback} handlers.unsubscribe
-   * @param {Object} redisClients
-   * @param {RedisClient} redisClients.pub
-   * @param {RedisClient} redisClients.sub
+   * @param {RedisClient} redisClient
    */
-  constructor(namespace, prefix, handlers, redisClients) {
-    const backend = new NotificationClientBackend(namespace, prefix, handlers, redisClients);
+  constructor(namespace, prefix, handlers, redisClient) {
+    const backend = new NotificationClientBackend(namespace, prefix, handlers, redisClient);
     this._send = (...args) => backend.send(...args);
   }
 
