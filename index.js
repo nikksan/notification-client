@@ -1,16 +1,19 @@
 const assert = require('assert');
+const { parser } = require('@luckbox/token-data-middleware');
 
 /**
  * @callback MessageCallback
  * @param {String} event
  * @param {*} message
- * @param {String} user
+ * @param {Object} user
+ * @param {String} handle
  */
 
  /**
  * @callback SubscribeCallback
  * @param {String[]} rooms
- * @param {String} user
+ * @param {Object} user
+ * @param {String} handle
  */
 
  /**
@@ -29,14 +32,16 @@ class NotificationClientBackend {
    * @param {SubscribeCallback} handlers.subscribe
    * @param {SubscribeCallback} handlers.unsubscribe
    * @param {RedisClient} redisClient
+   * @param {String|Buffer} publicKey
    */
-  constructor(namespace, prefix, handlers, redisClient) {
+  constructor(namespace, prefix, handlers, redisClient, publicKey) {
     assert(namespace, 'The NotificationClient cannot be initialized with an empty namespace');
     assert(prefix, 'The NotificationClient cannot be initialized with an empty prefix');
     assert(redisClient, 'The NotificationClient cannot be initialized without a Redis client');
     assert(typeof redisClient === 'object' && redisClient.constructor.name === 'RedisClient',
       'The "redisClient" argument must be a RedisClient instance');
 
+    this.parser = parser(publicKey);
     this.config = { namespace, prefix };
     this.redisClients = {
       pub: redisClient,
@@ -111,19 +116,22 @@ class NotificationClientBackend {
   processIncomingPacket(packet) {
     const {
       e: event,
+      h: handle,
       m: message,
-      u: user
+      t: token
     } = JSON.parse(packet);
+
+    const user = this.parser(token);
 
     if (event === 'subscribe' || event === 'unsubscribe') {
       const rooms = Array.isArray(message) ? message : [message];
-      if (this.handlers[event](rooms, user)) {
-        this.send(event, '', rooms, user);
+      if (this.handlers[event](rooms, user, handle)) {
+        this.send(event, '', rooms, handle);
       }
       return;
     }
 
-    this.handlers.message(event, message, user);
+    this.handlers.message(event, message, user, handle);
   }
 
   /**
@@ -131,7 +139,7 @@ class NotificationClientBackend {
    * @param {String} event
    * @param {*} message
    * @param {String[]} rooms
-   * @param {String} user
+   * @param {Number|String} user
    */
   send(event, message, rooms = null, user = null) {
     assert(event !== 'subscribe' && event !== 'unsubscribe', `The "${event}" event cannot be sent manually`);
@@ -161,9 +169,10 @@ class NotificationClient {
    * @param {SubscribeCallback} handlers.subscribe
    * @param {SubscribeCallback} handlers.unsubscribe
    * @param {RedisClient} redisClient
+   * @param {String|Buffer} publicKey
    */
-  constructor(namespace, prefix, handlers, redisClient) {
-    const backend = new NotificationClientBackend(namespace, prefix, handlers, redisClient);
+  constructor(namespace, prefix, handlers, redisClient, publicKey) {
+    const backend = new NotificationClientBackend(namespace, prefix, handlers, redisClient, publicKey);
     this._send = (...args) => backend.send(...args);
   }
 
@@ -172,7 +181,7 @@ class NotificationClient {
    * @param {String} event
    * @param {*} message
    * @param {String[]} rooms
-   * @param {String} user
+   * @param {String|Number} user
    */
   send(event, message, rooms = null, user = null) {
     this._send(event, message, rooms, user);
