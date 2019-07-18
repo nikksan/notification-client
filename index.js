@@ -142,8 +142,6 @@ class NotificationClientBackend {
    * @param {Number|String} user
    */
   send(event, message, rooms = null, user = null) {
-    assert(event !== 'subscribe' && event !== 'unsubscribe', `The "${event}" event cannot be sent manually`);
-
     const payload = {
       e: event,
       m: message
@@ -184,6 +182,7 @@ class NotificationClient {
    * @param {String|Number} user
    */
   send(event, message, rooms = null, user = null) {
+    assert(event !== 'subscribe' && event !== 'unsubscribe', `The "${event}" event cannot be sent manually`);
     this._send(event, message, rooms, user);
   }
 }
