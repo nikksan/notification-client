@@ -38,8 +38,6 @@ class NotificationClientBackend {
     assert(namespace, 'The NotificationClient cannot be initialized with an empty namespace');
     assert(prefix, 'The NotificationClient cannot be initialized with an empty prefix');
     assert(redisClient, 'The NotificationClient cannot be initialized without a Redis client');
-    assert(typeof redisClient === 'object' && redisClient.constructor.name === 'RedisClient',
-      'The "redisClient" argument must be a RedisClient instance');
 
     this.parser = parser(publicKey);
     this.config = { namespace, prefix };
