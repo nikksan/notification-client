@@ -15,7 +15,7 @@ declare class NotificationClient {
       subscribe?: SubscribeCallback,
       unsubscribe?: SubscribeCallback,
     },
-    redisClient: RedisClientType,
+    redisClient: RedisClientType<any, any, any>,
     publicKey: string | Buffer,
   );
 
