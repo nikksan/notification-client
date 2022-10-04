@@ -39,16 +39,16 @@ Name                | Type            | Description
 --------------------|-----------------|------------
 params.namespace    | `String`        | The namespace that identifies this client
 params.prefix       | `String`        | The prefix the server is configured with
-params.redisConfig  | `Object`        | A [RedisOptions]: https://luin.github.io/ioredis/index.html#RedisOptions object
+params.redisConfig  | `Object`        | A [RedisOptions](https://luin.github.io/ioredis/index.html#RedisOptions) obj
 
 #### `publish(event, message[, rooms, user])`
 
-Name    | Type            | Description
---------|-----------------|------------
-event   | `String`        | The event name to emit
-message | `Any`           | The message to send - could be any JSON-serializable data
-rooms   | `Array`         | An optional list of rooms names to send the message to
-user    | `Number|String` | An optional user or handle ID to send the message to
+Name    | Type                      | Description
+--------|---------------------------|------------
+event   | `String`                  | The event name to emit
+message | `Any`                     | The message to send - could be any JSON-serializable data
+rooms   | `Array`                   | An optional list of rooms names to send the message to
+user    | `Number or String`        | An optional user or handle ID to send the message to
 
 ### NotificationSubscriber
 
@@ -57,6 +57,5 @@ user    | `Number|String` | An optional user or handle ID to send the message to
 Name                | Type            | Description
 --------------------|-----------------|------------
 params.prefix       | `String`        | The prefix the server is configured with
-params.redisConfig  | `Object`        | A [RedisOptions]: https://luin.github.io/ioredis/index.html#RedisOptions object
+params.redisConfig  | `Object`        | A [RedisOptions](https://luin.github.io/ioredis/index.html#RedisOptions) obj
 params.handler      | `Function`      | Callback to be invoked when a message is received
-
