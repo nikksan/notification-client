@@ -42,9 +42,8 @@ export default class NotificationSubscriber {
       }
     });
 
+    await this.redisClient.publish(`${this.prefix}/rx`, 'SERVER_INIT');
     await this.redisClient.subscribe(`${this.prefix}/tx`);
-
-    await this.redisClient.duplicate().publish(`${this.prefix}/rx`, 'SERVER_INIT');
   }
 
   private async register(namespace: string) {
