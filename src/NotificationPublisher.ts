@@ -20,13 +20,13 @@ export default class NotificationPublisher {
     this.redisClient = new Redis(params.redisConfig);
   }
 
-  publish(
+  async publish(
     event: string,
     message: unknown,
     rooms: Array<string | number> | null = null,
     user: string | number | null = null
-  ): void {
-    this.publishServerInitCommandIfNotAlready();
+  ): Promise<void> {
+    await this.publishServerInitCommandIfNotAlready();
 
     const payload: Record<string, unknown> = {
       e: event,
@@ -41,15 +41,15 @@ export default class NotificationPublisher {
       payload.u = user;
     }
 
-    this.redisClient.publish(`${this.prefix}/${this.namespace}/tx`, JSON.stringify(payload));
+    await this.redisClient.publish(`${this.prefix}/${this.namespace}/tx`, JSON.stringify(payload));
   }
 
-  private publishServerInitCommandIfNotAlready() {
+  private async publishServerInitCommandIfNotAlready() {
     if (this.hasPublishedServerInitCommand) {
       return;
     }
 
-    this.redisClient.publish(`${this.prefix}/tx`, this.namespace);
+    await this.redisClient.publish(`${this.prefix}/tx`, this.namespace);
 
     this.hasPublishedServerInitCommand = true;
   }
