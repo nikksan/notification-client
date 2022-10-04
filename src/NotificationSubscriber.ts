@@ -4,19 +4,26 @@ import Redis, { RedisOptions } from 'ioredis';
 
 export type MessageHandler = (namespace: string, event: string, message: unknown, rooms: Array<string>, userIdOrSocketId: string | number | null) => any;
 
+type ConstructorParams = {
+  prefix: string,
+  handler: MessageHandler,
+  redisConfig: RedisOptions,
+  loggerFactory: LoggerFactory,
+};
+
 export default class NotificationSubscriber {
   private namespaces: Record<string, string> = {};
   private logger: Logger;
   private redisClient: Redis;
+  private prefix: string;
+  private handler: MessageHandler;
 
-  constructor(
-    private prefix: string,
-    private handler: MessageHandler,
-    redisConfig: RedisOptions,
-    loggerFactory: LoggerFactory,
-  ) {
-    this.logger = loggerFactory.create(this.constructor.name);
-    this.redisClient = new Redis(redisConfig);
+  constructor(params: ConstructorParams) {
+    this.logger = params.loggerFactory.create(this.constructor.name);
+    this.prefix = params.prefix;
+    this.handler = params.handler;
+
+    this.redisClient = new Redis(params.redisConfig);
   }
 
   subscribe(): void {

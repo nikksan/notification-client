@@ -15,6 +15,8 @@ export default class NotificationPublisher {
   private hasPublishedServerInitCommand = false;
 
   constructor(params: ConstructorParams) {
+    this.namespace = params.namespace;
+    this.prefix = params.prefix;
     this.redisClient = new Redis(params.redisConfig);
   }
 
