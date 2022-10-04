@@ -2,7 +2,7 @@
 import { Logger, LoggerFactory } from '@luckbox/logger-factory';
 import Redis, { RedisOptions } from 'ioredis';
 
-export type MessageHandler = (namespace: string, event: string, message: unknown, rooms: Array<string>, userIdOrSocketId: string | number | null) => any;
+export type MessageHandler = (namespace: string, event: string, message: unknown, rooms: Array<string>, userIdOrSocketId: string | number | null) => void;
 
 type ConstructorParams = {
   prefix: string,
