@@ -26,28 +26,32 @@ export default class NotificationSubscriber {
     this.redisClient = new Redis(params.redisConfig);
   }
 
-  subscribe(): void {
-    this.redisClient.on('message', (channel, packet) => {
-      if (channel === `${this.prefix}/tx`) {
-        this.register(packet);
-      } else if (channel in this.namespaces) {
-        try {
-          this.receivePacket(channel, packet);
-        } catch (error) {
-          this.logger.warn(error);
+  async subscribe(): Promise<void> {
+    this.redisClient.on('message', async (channel: string, packet: string) => {
+      try {
+        if (channel === `${this.prefix}/tx`) {
+          await this.register(packet);
+          return;
         }
+
+        if (channel in this.namespaces) {
+          this.receivePacket(channel, packet);
+        }
+      } catch (err) {
+        this.logger.warn(err);
       }
     });
-    this.redisClient.subscribe(`${this.prefix}/tx`);
 
-    this.redisClient.duplicate().publish(`${this.prefix}/rx`, 'SERVER_INIT');
+    await this.redisClient.subscribe(`${this.prefix}/tx`);
+
+    await this.redisClient.duplicate().publish(`${this.prefix}/rx`, 'SERVER_INIT');
   }
 
-  private register(namespace: string) {
+  private async register(namespace: string) {
     const channel = `${this.prefix}/${namespace}/tx`;
     if (!(channel in this.namespaces)) {
       this.namespaces[channel] = namespace;
-      this.redisClient.subscribe(channel);
+      await this.redisClient.subscribe(channel);
     }
   }
 
