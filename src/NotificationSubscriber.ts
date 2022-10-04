@@ -35,7 +35,7 @@ export default class NotificationSubscriber {
         }
 
         if (channel in this.namespaces) {
-          this.receivePacket(channel, packet);
+          await this.receivePacket(channel, packet);
         }
       } catch (err) {
         this.logger.warn(err);
@@ -63,6 +63,6 @@ export default class NotificationSubscriber {
       u: user,
     } = Object.assign({ u: null, r: [] }, JSON.parse(packet));
 
-    this.handler(namespace, event, message, rooms, user);
+    return this.handler(namespace, event, message, rooms, user);
   }
 }
