@@ -34,11 +34,14 @@ export default class NotificationSubscriber {
     }
 
     this.redisClient.on('message', async (channel: string, packet: string) => {
-      if (!channel.endsWith('/tx')) {
+      if (
+        !channel.startsWith(this.prefix) ||
+        !channel.endsWith('/tx')
+      ) {
         return;
       }
 
-      const [, namespace] = channel.split('/');
+      const namespace = channel.slice(this.prefix.length + 1, -3);
       try {
         if (this.namespaces.includes(namespace)) {
           await this.receivePacket(namespace, packet);
