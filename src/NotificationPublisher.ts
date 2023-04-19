@@ -12,7 +12,6 @@ export default class NotificationPublisher {
   private namespace: string;
   private prefix: string;
   private redisClient: Redis;
-  private hasPublishedServerInitCommand = false;
 
   constructor(params: ConstructorParams) {
     this.namespace = params.namespace;
@@ -26,8 +25,6 @@ export default class NotificationPublisher {
     rooms: Array<string | number> | null = null,
     user: string | number | null = null
   ): Promise<void> {
-    await this.publishServerInitCommandIfNotAlready();
-
     const payload: Record<string, unknown> = {
       e: event,
       m: message,
@@ -42,15 +39,5 @@ export default class NotificationPublisher {
     }
 
     await this.redisClient.publish(`${this.prefix}/${this.namespace}/tx`, JSON.stringify(payload));
-  }
-
-  private async publishServerInitCommandIfNotAlready() {
-    if (this.hasPublishedServerInitCommand) {
-      return;
-    }
-
-    await this.redisClient.publish(`${this.prefix}/tx`, this.namespace);
-
-    this.hasPublishedServerInitCommand = true;
   }
 }

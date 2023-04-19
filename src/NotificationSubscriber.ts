@@ -6,13 +6,14 @@ export type MessageHandler = (namespace: string, event: string, message: unknown
 
 type ConstructorParams = {
   prefix: string,
+  namespaces: Array<string>,
   handler: MessageHandler,
   redisConfig: RedisOptions,
   loggerFactory: LoggerFactory,
 };
 
 export default class NotificationSubscriber {
-  private namespaces: Record<string, string> = {};
+  private namespaces: Array<string>;
   private logger: Logger;
   private redisClient: Redis;
   private prefix: string;
@@ -22,40 +23,39 @@ export default class NotificationSubscriber {
     this.logger = params.loggerFactory.create(this.constructor.name);
     this.prefix = params.prefix;
     this.handler = params.handler;
+    this.namespaces = params.namespaces;
 
     this.redisClient = new Redis(params.redisConfig);
   }
 
   async subscribe(): Promise<void> {
-    this.redisClient.on('message', async (channel: string, packet: string) => {
-      try {
-        if (channel === `${this.prefix}/tx`) {
-          await this.register(packet);
-          return;
-        }
+    for (const namespace of this.namespaces) {
+      await this.register(namespace);
+    }
 
-        if (channel in this.namespaces) {
-          await this.receivePacket(channel, packet);
+    this.redisClient.on('message', async (channel: string, packet: string) => {
+      if (!channel.endsWith('/tx')) {
+        return;
+      }
+
+      const [, namespace] = channel.split('/');
+      try {
+        if (this.namespaces.includes(namespace)) {
+          await this.receivePacket(namespace, packet);
         }
       } catch (err) {
         this.logger.warn(err);
       }
     });
-
-    await this.redisClient.publish(`${this.prefix}/rx`, 'SERVER_INIT');
-    await this.redisClient.subscribe(`${this.prefix}/tx`);
   }
 
   private async register(namespace: string) {
     const channel = `${this.prefix}/${namespace}/tx`;
-    if (!(channel in this.namespaces)) {
-      this.namespaces[channel] = namespace;
-      await this.redisClient.subscribe(channel);
-    }
+    await this.redisClient.subscribe(channel);
+    this.logger.info(`Registered namespace ${namespace} [${channel}]`);
   }
 
-  private receivePacket(channel: string, packet: string) {
-    const namespace = this.namespaces[channel];
+  private receivePacket(namespace: string, packet: string) {
     const {
       e: event,
       m: message,
